@@ -86,6 +86,18 @@ Base path: `/internal` — every endpoint requires `Authorization: Bearer <VAULT
 | `GET /internal/registrations/{clinicUuid}/{appointmentId}/files/zip` | All files as one on-the-fly zip. **Not** Range-resumable by design — see File-Storage.md's "Bulk download: zip-all" note. |
 | `DELETE /internal/registrations/{clinicUuid}/{appointmentId}/files/{fileId}` | Delete a single file. |
 | `POST /internal/admin/purge` | Manually trigger the retention sweep. Only responds when `vault.purge.manual-trigger-enabled=true` (dev/acceptance) — `404`s otherwise, to avoid hinting the endpoint exists in prod. |
+| `GET /internal/status` | Read-only runtime config snapshot — `{clamAvEnabled, retentionDays, purgeEnabled, manualPurgeTriggerEnabled}`. Use this to confirm whether virus scanning is actually on for a given deployment instead of guessing from env vars. |
+
+**Turning ClamAV on/off**: set `VAULT_CLAMAV_ENABLED=false` (env var) or
+`vault.clamav.enabled=false` (property) — defaults to `true` in
+`application.properties`, already overridden to `false` in both the `dev`
+and `acceptance` profiles. When disabled, every upload is treated as
+`CLEAN` with no attempt to reach clamd at all (safe to run this service on
+a host with no ClamAV installed). When enabled but clamd is unreachable, a
+scan failure stores the file with `clamScanResult=ERROR` rather than
+rejecting the upload outright — only a confirmed `INFECTED` verdict is
+rejected. Check `GET /internal/status` after startup to confirm which mode
+is actually active.
 
 **DTO naming**: `*RequestModelV1` / `*ResponseModelV1`, matching the main
 backend's convention.

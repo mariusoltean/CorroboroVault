@@ -20,6 +20,7 @@ import ro.corroboro.vault.core.domain.request.RegisterAppointmentRequestModelV1;
 import ro.corroboro.vault.core.domain.request.UpdateAppointmentDateRequestModelV1;
 import ro.corroboro.vault.core.domain.response.RegistrationResponseModelV1;
 import ro.corroboro.vault.core.domain.response.UploadedFileResponseModelV1;
+import ro.corroboro.vault.core.domain.response.VaultStatusResponseModelV1;
 import ro.corroboro.vault.core.services.purge.PurgeResult;
 import ro.corroboro.vault.core.services.purge.PurgeScheduler;
 import ro.corroboro.vault.core.services.registration.RegistrationService;
@@ -52,6 +53,24 @@ public class InternalController {
 
     @Value("${vault.purge.manual-trigger-enabled:false}")
     private boolean manualPurgeTriggerEnabled;
+
+    @Value("${vault.clamav.enabled:true}")
+    private boolean clamAvEnabled;
+
+    @Value("${vault.retention.days:15}")
+    private int retentionDays;
+
+    @Value("${vault.purge.enabled:true}")
+    private boolean purgeEnabled;
+
+    /** Confirms what's actually active on this deployment — in particular, whether virus
+     *  scanning is genuinely on (set VAULT_CLAMAV_ENABLED=false to turn it off; see this
+     *  repo's CLAUDE.md). No secrets in the response — just booleans/counts. */
+    @GetMapping("/status")
+    public ResponseEntity<VaultStatusResponseModelV1> status() {
+        return ResponseEntity.ok(new VaultStatusResponseModelV1(
+                clamAvEnabled, retentionDays, purgeEnabled, manualPurgeTriggerEnabled));
+    }
 
     // ─── Registrations ──────────────────────────────────────────────────────
 
