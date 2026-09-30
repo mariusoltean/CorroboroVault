@@ -1,0 +1,15 @@
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# Local dev artifacts
+logs/
+vault-files-dev/
+*.log
